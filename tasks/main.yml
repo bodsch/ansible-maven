@@ -1,0 +1,15 @@
+---
+
+- name: '[fact] set maven installed'
+  set_fact:
+    maven_installed: true
+  when:
+    ansible_local.maven is defined and ansible_local.maven.version is defined
+
+- include_tasks: 01-install.yml
+  when:
+    maven_installed is defined and maven_installed == false
+
+- include_tasks: 10-configure.yml
+- include_tasks: 80-cleanup.yml
+- include_tasks: 85-facts.yml

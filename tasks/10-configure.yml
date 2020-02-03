@@ -1,0 +1,8 @@
+---
+- name: 'insert custom profile script to define PATH variables'
+  template:
+    src: 'profile.d/maven.sh.j2'
+    dest: '/etc/profile.d/maven.sh'
+    owner: 'root'
+    group: 'root'
+    mode: '0755'
