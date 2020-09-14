@@ -1,8 +1,0 @@
----
-- name: 'cleaning up'
-  file:
-    state: absent
-    path: '{{ maven_home_parent_directory }}/{{ maven_file_name }}'
-  when: (
-    (maven_installed is not defined or maven_installed == false) and
-    (maven_downloaded is defined and maven_downloaded == true))

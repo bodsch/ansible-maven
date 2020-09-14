@@ -1,15 +1,75 @@
 ---
 
-- name: '[fact] set maven installed'
-  set_fact:
-    maven_installed: true
-  when:
-    ansible_local.maven is defined and ansible_local.maven.version is defined
+- name: check for installed maven
+  become: false
+  stat:
+    path: "{{ maven_home_parent_directory }}/apache-maven-{{ maven_version }}/bin/mvn"
+  register: _installed_maven
 
-- include_tasks: 01-install.yml
-  when:
-    maven_installed is defined and maven_installed == false
+- block:
+    - name: create deployment temporary directory
+      file:
+        path: "{{ maven_deployment_tmp_directory }}"
+        state: directory
+        mode: 0750
 
-- include_tasks: 10-configure.yml
-- include_tasks: 80-cleanup.yml
-- include_tasks: 85-facts.yml
+    - name: create local temporary directory
+      become: false
+      file:
+        path: "{{ maven_local_tmp_directory }}"
+        state: directory
+        mode: 0750
+      delegate_to: localhost
+
+    - name: download maven binary to local folder
+      become: false
+      get_url:
+        url: "{{ maven_download_url }}"
+        dest: "{{ maven_local_tmp_directory }}/{{ maven_file_name }}"
+      register: _download_artefact
+      until: _download_artefact is succeeded
+      retries: 5
+      delay: 0
+      delegate_to: localhost
+      check_mode: false
+
+    - name: deploy {{ maven_file_name }} to destination system
+      copy:
+        src: "{{ maven_local_tmp_directory }}/{{ maven_file_name }}"
+        dest: "{{ maven_deployment_tmp_directory }}"
+        mode: 0640
+
+    - name: unarchive {{ maven_file_name }}
+      unarchive:
+        src: '{{ maven_deployment_tmp_directory }}/{{ maven_file_name }}'
+        dest: '{{ maven_home_parent_directory }}'
+        copy: false
+        mode: 0640
+
+  when: not _installed_maven.stat.exists
+
+- name: 'create generic link to {{ maven_home_parent_directory }}/maven'
+  file:
+    src: '{{ maven_home_parent_directory }}/apache-maven-{{ maven_version }}'
+    dest: '{{ maven_home_parent_directory }}/maven'
+    state: link
+
+- name: 'link {{ maven_home_parent_directory }}/maven/bin/mvn to /usr/bin/mvn'
+  file:
+    src: '{{ maven_home_parent_directory }}/maven/bin/mvn'
+    dest: '/usr/bin/mvn'
+    state: link
+
+- name: insert custom profile script to define PATH variables
+  template:
+    src: profile.d/maven.sh.j2
+    dest: /etc/profile.d/maven.sh
+    owner: root
+    group: root
+    mode: 0755
+
+- name: cleaning up
+  file:
+    state: absent
+    path: '{{ maven_deployment_tmp_directory }}'
+  when: maven_cleanup
