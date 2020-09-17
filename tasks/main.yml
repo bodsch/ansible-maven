@@ -44,7 +44,7 @@
         src: '{{ maven_deployment_tmp_directory }}/{{ maven_file_name }}'
         dest: '{{ maven_home_parent_directory }}'
         copy: false
-        mode: 0640
+        mode: 0750
 
   when: not _installed_maven.stat.exists
 
