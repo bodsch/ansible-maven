@@ -11,7 +11,3 @@ maven_home_parent_directory: /opt
 maven_download_username: ''
 maven_download_password: ''
 
-maven_opts:
-  - --define skipTests=true
-  - --threads 3
-
