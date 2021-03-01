@@ -1,12 +1,10 @@
 ---
-- hosts: all
+- name: converge
+  hosts: all
   any_errors_fatal: false
+
   environment:
     NETRC: ''
-#    ANSIBLE_STRATEGY: debug
-
-  vars:
-    maven_version: 3.6.3
 
   roles:
     - role: ansible-maven
