@@ -2,6 +2,8 @@
 
 galaxy_info:
   role_name: maven
+  namespace: bodsch
+
   author: Bodo Schulz
   description: Maven ansible role
   license: Apache
