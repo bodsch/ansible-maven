@@ -3,7 +3,8 @@
 # remove downloaded files
 maven_cleanup: false
 
-maven_mirror: "http://mirror.23media.de/apache"
+# get mirror list from: https://www.apache.org/mirrors/
+maven_mirror: "https://mirror.dkd.de/apache/"
 
 maven_version: "3.6.3"
 maven_home_parent_directory: /opt
