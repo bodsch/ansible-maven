@@ -1,4 +1,5 @@
 ---
+maven_dependencies: []
 
 maven_deployment_tmp_directory: /tmp/ansible/maven
 maven_local_tmp_directory: /tmp/ansible/maven/{{ maven_version }}
@@ -7,3 +8,5 @@ maven_major: "{{ maven_version.split('.')[0] }}"
 
 maven_file_name: "apache-maven-{{ maven_version }}-bin.tar.gz"
 maven_download_url: "{{ maven_mirror }}/maven/maven-{{ maven_major }}/{{ maven_version }}/binaries/{{ maven_file_name }}"
+
+...

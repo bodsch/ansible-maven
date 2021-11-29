@@ -1,0 +1,23 @@
+---
+
+- name: 'create generic link to {{ maven_home_parent_directory }}/maven'
+  file:
+    src: '{{ maven_home_parent_directory }}/apache-maven-{{ maven_version }}'
+    dest: '{{ maven_home_parent_directory }}/maven'
+    state: link
+
+- name: 'link {{ maven_home_parent_directory }}/maven/bin/mvn to /usr/bin/mvn'
+  file:
+    src: '{{ maven_home_parent_directory }}/maven/bin/mvn'
+    dest: '/usr/bin/mvn'
+    state: link
+
+- name: insert custom profile script to define PATH variables
+  template:
+    src: profile.d/maven.sh.j2
+    dest: /etc/profile.d/maven.sh
+    owner: root
+    group: root
+    mode: 0755
+
+...

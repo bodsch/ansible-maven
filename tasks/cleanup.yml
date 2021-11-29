@@ -1,0 +1,9 @@
+---
+
+- name: cleaning up
+  file:
+    state: absent
+    path: '{{ maven_deployment_tmp_directory }}'
+  when: maven_cleanup
+
+...
