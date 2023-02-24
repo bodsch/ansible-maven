@@ -47,6 +47,8 @@
   ansible.builtin.package:
     name: "{{ maven_dependencies }}"
     state: present
+  when:
+    - maven_dependencies | default([]) | count > 0
 
 - name: check for installed maven
   become: false
