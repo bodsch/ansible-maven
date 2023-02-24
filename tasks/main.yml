@@ -1,16 +1,19 @@
 ---
 
 - name: prepare
-  include_tasks: prepare.yml
+  ansible.builtin.include_tasks: prepare.yml
 
 - name: dwonload
-  include_tasks: download.yml
+  ansible.builtin.include_tasks: download.yml
+  when:
+    - _installed_maven is defined
+    - not _installed_maven.stat.exists
 
 - name: install
-  include_tasks: install.yml
+  ansible.builtin.include_tasks: install.yml
 
 - name: cleanup
-  include_tasks: cleanup.yml
+  ansible.builtin.include_tasks: cleanup.yml
 
 
 ...

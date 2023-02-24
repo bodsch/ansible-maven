@@ -1,9 +1,10 @@
 ---
 
 - name: cleaning up
-  file:
+  ansible.builtin.file:
     state: absent
     path: '{{ maven_deployment_tmp_directory }}'
-  when: maven_cleanup
+  when:
+    - maven_cleanup
 
 ...

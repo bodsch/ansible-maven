@@ -18,15 +18,17 @@
 #         - default.yaml
 #       skip: true
 
-- block:
-    #
+- name: redhat
+  when:
+    - ansible_os_family | lower == 'redhat'
+  block:
     - name: Import EPEL GPG key.
-      rpm_key:
+      ansible.builtin.rpm_key:
         key: https://archive.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}
         state: present
 
     - name: install EPEL repository
-      yum_repository:
+      ansible.builtin.yum_repository.yum_repository:
         name: epel
         state: present
         description: Extra Packages for Enterprise Linux {{ ansible_distribution_major_version }} - $basearch
@@ -36,21 +38,19 @@
         failovermethod: priority
         gpgcheck: 1
         enabled: 1
-  when:
-    - ansible_os_family | lower == 'redhat'
 
 - name: update package cache
-  package:
+  ansible.builtin.package:
     update_cache: true
 
 - name: install dependecies
-  package:
+  ansible.builtin.package:
     name: "{{ maven_dependencies }}"
     state: present
 
 - name: check for installed maven
   become: false
-  stat:
+  ansible.builtin.stat:
     path: "{{ maven_home_parent_directory }}/apache-maven-{{ maven_version }}/bin/mvn"
   register: _installed_maven
 
