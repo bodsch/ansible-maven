@@ -15,15 +15,16 @@ galaxy_info:
         - etch
         # 10
         - buster
+        # 11
+        - bullseye
+        # 12
+        - bookworm
     - name: Ubuntu
       versions:
         # 18.04
         - bionic
         # 20.04
         - focal
-    - name: EL
-      versions:
-        - "8"
 
   galaxy_tags:
     - development

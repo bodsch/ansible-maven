@@ -1,43 +1,114 @@
 ---
 
-- name: create deployment temporary directory
-  ansible.builtin.file:
-    path: "{{ maven_deployment_tmp_directory }}"
-    state: directory
-    mode: 0750
-
-- name: create local temporary directory
+- name: get latest release
   delegate_to: localhost
   become: false
+  run_once: true
+  when:
+    - maven_version == "latest"
+  block:
+    - name: get latest release
+      bodsch.scm.github_latest:
+        project: apache
+        repository: maven
+        user: "{{ lookup('env', 'GH_USER') | default(omit) }}"
+        password: "{{ lookup('env', 'GH_TOKEN') | default(omit) }}"
+      register: _latest_release
+
+    - name: set maven version
+      ansible.builtin.set_fact:
+        maven_version: "{{ _latest_release.latest_release }}"
+
+- name: define download information
+  ansible.builtin.set_fact:
+    maven_release: "{{ maven_defaults_release | combine(maven_release, recursive=True) }}"
+
+- name: define delegate instance for download handling
+  ansible.builtin.set_fact:
+    maven_delegate_to: "{{ ansible_host }}"
+    maven_local_tmp_directory: "{{
+        lookup('env', 'CUSTOM_LOCAL_TMP_DIRECTORY') |
+        default('/var/cache/ansible/maven', true) }}/{{ maven_version }}"
+  when:
+    - maven_direct_download
+
+- name: create download directory
+  become: false
+  delegate_to: "{{ maven_delegate_to }}"
+  run_once: "{{ 'false' if maven_direct_download else 'true' }}"
   ansible.builtin.file:
     path: "{{ maven_local_tmp_directory }}"
     state: directory
     mode: 0750
 
-- name: download maven binary to local folder
-  delegate_to: localhost
+- name: detect the downloaded maven archive
   become: false
-  ansible.builtin.get_url:
-    url: "{{ maven_download_url }}"
-    dest: "{{ maven_local_tmp_directory }}/{{ maven_file_name }}"
-    mode: 0640
-  register: _download_artefact
-  until: _download_artefact is succeeded
-  retries: 5
-  delay: 2
-  check_mode: false
+  delegate_to: "{{ maven_delegate_to }}"
+  run_once: "{{ 'false' if maven_direct_download else 'true' }}"
+  ansible.builtin.stat:
+    path: "{{ maven_local_tmp_directory }}/{{ maven_release.file }}"
+  register: stat_maven_archive
 
-- name: deploy {{ maven_file_name }} to destination system
+- name: download
+  when:
+    - stat_maven_archive.stat is defined
+    - not stat_maven_archive.stat.exists | default('false')
+  block:
+    - name: download maven archive to local folder
+      become: false
+      delegate_to: "{{ maven_delegate_to }}"
+      run_once: "{{ 'false' if maven_direct_download else 'true' }}"
+      ansible.builtin.get_url:
+        url: "{{ maven_release.download_url }}/{{ maven_release.file }}"
+        dest: "{{ maven_local_tmp_directory }}/{{ maven_release.file }}"
+        mode: 0640
+      register: _download_artefact
+      until: _download_artefact is succeeded
+      retries: 5
+      delay: 2
+      check_mode: false
+
+  rescue:
+    - name: 2nd try
+      block:
+        - name: download maven archive to local folder
+          become: false
+          delegate_to: "{{ maven_delegate_to }}"
+          run_once: "{{ 'false' if maven_direct_download else 'true' }}"
+          ansible.builtin.get_url:
+            url: "{{ maven_release.archive_url }}/{{ maven_release.file }}"
+            dest: "{{ maven_local_tmp_directory }}/{{ maven_release.file }}"
+            mode: 0640
+          register: _download_artefact
+          until: _download_artefact is succeeded
+          retries: 5
+          delay: 2
+          check_mode: false
+
+      rescue:
+        - name: delete download directory
+          become: false
+          delegate_to: "{{ maven_delegate_to }}"
+          run_once: "{{ 'false' if maven_direct_download else 'true' }}"
+          ansible.builtin.file:
+            path: "{{ maven_local_tmp_directory }}"
+            state: absent
+
+        - name: exit with fail
+          ansible.builtin.fail:
+            msg: A serious error occurred when downloading the archive.
+
+- name: create remote deployment directory
+  become: true
+  ansible.builtin.file:
+    state: directory
+    path: "{{ maven_deployment_tmp_directory }}"
+    mode: 0750
+
+- name: deploy {{ maven_release.file }} to destination system
   ansible.builtin.copy:
-    src: "{{ maven_local_tmp_directory }}/{{ maven_file_name }}"
+    src: "{{ maven_local_tmp_directory }}/{{ maven_release.file }}"
     dest: "{{ maven_deployment_tmp_directory }}"
     mode: 0640
-
-- name: unarchive {{ maven_file_name }}
-  ansible.builtin.unarchive:
-    src: '{{ maven_deployment_tmp_directory }}/{{ maven_file_name }}'
-    dest: '{{ maven_home_parent_directory }}'
-    copy: false
-    mode: 0755
 
 ...

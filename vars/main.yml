@@ -1,12 +1,23 @@
 ---
-maven_dependencies: []
-
-maven_deployment_tmp_directory: /tmp/ansible/maven
-maven_local_tmp_directory: /tmp/ansible/maven/{{ maven_version }}
 
 maven_major: "{{ maven_version.split('.')[0] }}"
 
-maven_file_name: "apache-maven-{{ maven_version }}-bin.tar.gz"
-maven_download_url: "{{ maven_mirror }}/maven/maven-{{ maven_major }}/{{ maven_version }}/binaries/{{ maven_file_name }}"
+maven_delegate_to: localhost
+
+maven_local_tmp_directory: "{{
+  lookup('env', 'CUSTOM_LOCAL_TMP_DIRECTORY') |
+  default(lookup('env', 'HOME') ~ '/.cache/ansible/maven', true) }}/{{ maven_version }}"
+
+maven_dependencies: []
+
+maven_deployment_tmp_directory: /var/cache/ansible/maven
+
+maven_defaults_release:
+  download_url: "{{ maven_mirror }}/maven/maven-{{ maven_major }}/{{ maven_version }}/binaries"
+  # https://archive.apache.org/dist/maven/maven-3/3.6.3/binaries/
+  archive_url: "https://archive.apache.org/dist/maven/maven-{{ maven_major }}/{{ maven_version }}/binaries"
+  file: "apache-maven-{{ maven_version }}-bin.tar.gz"
+  checksum: ""
+  binary: mvn
 
 ...

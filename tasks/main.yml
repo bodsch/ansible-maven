@@ -5,15 +5,11 @@
 
 - name: dwonload
   ansible.builtin.include_tasks: download.yml
-  when:
-    - _installed_maven is defined
-    - not _installed_maven.stat.exists
 
 - name: install
   ansible.builtin.include_tasks: install.yml
 
 - name: cleanup
   ansible.builtin.include_tasks: cleanup.yml
-
 
 ...

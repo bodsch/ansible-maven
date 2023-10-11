@@ -1,16 +1,47 @@
 ---
 
-- name: 'create generic link to {{ maven_home_parent_directory }}/maven'
-  ansible.builtin.file:
-    src: '{{ maven_home_parent_directory }}/apache-maven-{{ maven_version }}'
-    dest: '{{ maven_home_parent_directory }}/maven'
-    state: link
+- name: detect the downloaded maven archive
+  ansible.builtin.stat:
+    path: "{{ maven_deployment_tmp_directory }}/{{ maven_release.file }}"
+  register: stat_maven_archive
 
-- name: 'link {{ maven_home_parent_directory }}/maven/bin/mvn to /usr/bin/mvn'
-  ansible.builtin.file:
-    src: '{{ maven_home_parent_directory }}/maven/bin/mvn'
-    dest: '/usr/bin/mvn'
-    state: link
+- name: check for installed maven
+  become: false
+  ansible.builtin.stat:
+    path: "{{ maven_home_parent_directory }}/apache-maven-{{ maven_version }}/bin/mvn"
+  register: stat_maven_binary
+
+- name: detect activated maven
+  ansible.builtin.stat:
+    path: /usr/bin/{{ maven_release.binary }}
+  register: stat_maven_activated
+
+- name: install and activate maven
+  when:
+    - (stat_maven_binary.stat is defined and not stat_maven_binary.stat.exists | default('false')) or
+      not stat_maven_activated.stat | bodsch.core.linked_version(maven_home_parent_directory, maven_version)
+  block:
+    - name: unarchive {{ maven_release.file }}
+      ansible.builtin.unarchive:
+        src: '{{ maven_deployment_tmp_directory }}/{{ maven_release.file }}'
+        dest: '{{ maven_home_parent_directory }}'
+        copy: false
+        mode: 0755
+      when:
+        - stat_maven_archive.stat is defined
+        - stat_maven_archive.stat.exists | default('true')
+
+    - name: 'create generic link to {{ maven_home_parent_directory }}/maven'
+      ansible.builtin.file:
+        src: '{{ maven_home_parent_directory }}/apache-maven-{{ maven_version }}'
+        dest: '{{ maven_home_parent_directory }}/maven'
+        state: link
+
+    - name: 'link {{ maven_home_parent_directory }}/maven/bin/mvn to /usr/bin/mvn'
+      ansible.builtin.file:
+        src: '{{ maven_home_parent_directory }}/maven/bin/mvn'
+        dest: '/usr/bin/mvn'
+        state: link
 
 - name: insert custom profile script to define PATH variables
   ansible.builtin.template:
@@ -19,5 +50,11 @@
     owner: root
     group: root
     mode: 0755
+
+- name: create custom fact file
+  bodsch.core.facts:
+    name: maven
+    facts:
+      version: "{{ maven_version }}"
 
 ...

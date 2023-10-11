@@ -1,13 +1,20 @@
 ---
 
-# remove downloaded files
-maven_cleanup: false
-
+maven_version: "3.6.3"
 # get mirror list from: https://maven.apache.org/download.cgi
 maven_mirror: "https://dlcdn.apache.org"
 
-maven_version: "3.6.3"
-maven_home_parent_directory: /opt
+maven_direct_download: false
 
-maven_download_username: ''
-maven_download_password: ''
+maven_release: {}
+#   download_url: "{{ maven_mirror }}/maven/maven-{{ maven_major }}/{{ maven_version }}/binaries"
+#   # https://archive.apache.org/dist/maven/maven-3/3.6.3/binaries/
+#   archive_url: "https://archive.apache.org/dist/maven/maven-{{ maven_major }}/{{ maven_version }}/binaries"
+#   file: "apache-maven-{{ maven_version }}-bin.tar.gz"
+#   checksum: ""
+#   binary: mvn
+
+# remove downloaded files
+maven_cleanup: false
+
+maven_home_parent_directory: /opt
