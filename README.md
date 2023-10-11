@@ -14,6 +14,19 @@ Ansible role to install maven.
 [releases]: https://github.com/bodsch/ansible-maven/releases
 [quality]: https://galaxy.ansible.com/bodsch/maven
 
+## Requirements & Dependencies
+
+Ansible Collections
+
+- [bodsch.core](https://github.com/bodsch/ansible-collection-core)
+
+```bash
+ansible-galaxy collection install bodsch.core
+```
+or
+```bash
+ansible-galaxy collection install --requirements-file collections.yml
+```
 
 ## Operating systems
 
@@ -21,8 +34,11 @@ Tested on
 
 * Arch Linux
 * Debian based
-    - Debian 10 / 11
-    - Ubuntu 20.10
+    - Debian 10 / 11 / 12
+    - Ubuntu 20.10 / 22.04
+
+> **RedHat-based systems are no longer officially supported! May work, but does not have to.**
+
 
 ## Contribution
 
@@ -49,15 +65,12 @@ If you want to use something stable, please use a [Tagged Version](https://githu
 
 [defaults/main.yml](defaults/main.yml)
 
-| *Variable*                    | *Default Value*                   | *Description* |
-| :---                          | :---                              | :--- |
-| `maven_cleanup`               | `false`                           | clean temporary directory after installation  |
-| `maven_version`               | `3.6.3`                           | Version number |
-| `maven_home_parent_directory` | `/opt`                            | `MAVEN_HOME` parent directory |
-| `maven_mirror`                | `http://mirror.23media.de/apache` | default mirror (see [maven.apache.org](https://maven.apache.org/download.cgi)) |
-| `maven_download_username`     | `''`                              | see ansible [get_url](http://docs.ansible.com/ansible/latest/get_url_module.html) `url_username` option |
-| `maven_download_password`     | `''`                              | see ansible [get_url](http://docs.ansible.com/ansible/latest/get_url_module.html) `url_password` option |
-
+| *Variable*                    | *Default Value*              | *Description* |
+| :---                          | :---                         | :--- |
+| `maven_cleanup`               | `false`                      | clean temporary directory after installation  |
+| `maven_version`               | `3.6.3`                      | Version number |
+| `maven_home_parent_directory` | `/opt`                       | `MAVEN_HOME` parent directory |
+| `maven_mirror`                | `https://dlcdn.apache.org`   | default mirror (see [maven.apache.org](https://maven.apache.org/download.cgi)) |
 
 ----
 
