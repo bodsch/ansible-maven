@@ -28,7 +28,7 @@ platforms:
         type: bind
         read_only: false
     volumes:
-        - /var/lib/containerd
+      - /var/lib/containerd
     capabilities:
       - SYS_ADMIN
     tmpfs:
